@@ -52,8 +52,51 @@ void graph_func(Tigr * screen, TPixel color, float (*func)(float)){
         past_x = new_x;
         past_y = new_y;
     }
+}
 
+void process_input(Tigr * screen){
+    // Moving the graph around
+    if (tigrKeyHeld(screen, TK_LEFT)) current_x -= (upper_x-lower_x)/100;
+    if (tigrKeyHeld(screen, TK_RIGHT)){
+        current_x += (upper_x-lower_x)/100;
+    }
+    if (tigrKeyHeld(screen, TK_UP)){
+        current_y += (upper_y-lower_y)/100;
+    }
+    if (tigrKeyHeld(screen, TK_DOWN)){
+        current_y -= (upper_y-lower_y)/100;
+    }
 
+    // Zooming out
+    if (tigrKeyHeld(screen, TK_PADSUB)){
+        float dy = log10f(upper_y - lower_y)/10;
+        upper_y += dy;
+        lower_y -= dy;
+
+        float dx = log10f(upper_x-lower_x)/10;
+        upper_x += dx;
+        lower_x -= dx;
+    }
+
+    // Zooming in
+    if (tigrKeyHeld(screen, TK_PADADD)){
+        float dy = log10f(upper_y - lower_y)/10;
+        upper_y -= dy;
+        lower_y += dy;
+
+        float dx = log10f(upper_x-lower_x)/10;
+        upper_x -= dx;
+        lower_x += dx;
+    }
+}
+
+void draw_axes(Tigr * screen){
+    // Horizontal
+    float y_axis = ((current_y)/(upper_y-lower_y) + 0.5) * screen_height;
+    tigrLine(screen, 0, y_axis, screen_width, y_axis, tigrRGB(0, 0, 0));
+    // Vertical
+    float x_axis = ((-current_x)/(upper_x-lower_x) + 0.5) * screen_width;
+    tigrLine(screen, x_axis, 0, x_axis, screen_height, tigrRGB(0, 0, 0));
 }
 
 int main () {
@@ -61,45 +104,11 @@ int main () {
     while (!tigrClosed(screen)) {
         tigrClear(screen, tigrRGB(255, 255, 255));
 
+        draw_axes(screen);
         graph_func(screen, tigrRGB(255, 0, 0), h);
         //graph_func(screen, tigrRGB(0, 0, 255), f);
 
-        // Moving the graph around
-        if (tigrKeyHeld(screen, TK_LEFT)){
-            current_x -= (upper_x-lower_x)/100;
-        }
-        if (tigrKeyHeld(screen, TK_RIGHT)){
-            current_x += (upper_x-lower_x)/100;
-        }
-        if (tigrKeyHeld(screen, TK_UP)){
-            current_y += (upper_y-lower_y)/100;
-        }
-        if (tigrKeyHeld(screen, TK_DOWN)){
-            current_y -= (upper_y-lower_y)/100;
-        }
-
-        // Zooming out
-        if (tigrKeyHeld(screen, TK_PADSUB)){
-            float dy = log10f(upper_y - lower_y)/10;
-            upper_y += dy;
-            lower_y -= dy;
-
-            float dx = log10f(upper_x-lower_x)/10;
-            upper_x += dx;
-            lower_x -= dx;
-        }
-
-        // Zooming in
-        if (tigrKeyHeld(screen, TK_PADADD)){
-            float dy = log10f(upper_y - lower_y)/10;
-            upper_y -= dy;
-            lower_y += dy;
-
-            float dx = log10f(upper_x-lower_x)/10;
-            upper_x -= dx;
-            lower_x += dx;
-        }
-        
+        process_input(screen);
 
         tigrUpdate(screen);
     }
